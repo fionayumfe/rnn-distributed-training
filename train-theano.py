@@ -51,9 +51,9 @@ sentence_end_token = "SENTENCE_END"
 print "Reading CSV file..."
 with open('data/reddit-comments-2015-08.csv', 'rb') as f:
     reader = csv.reader(f, skipinitialspace=True)
-    reader.next()
+    next(reader)
     # Split full comments into sentences
-    sentences = itertools.chain(*[nltk.sent_tokenize(x[0].decode('utf-8').lower()) for x in reader])
+    sentences = itertools.chain(*[nltk.sent_tokenize(x[0].lower()) for x in reader])
     # Append SENTENCE_START and SENTENCE_END
     sentences = ["%s %s %s" % (sentence_start_token, x, sentence_end_token) for x in sentences]
 print "Parsed %d sentences." % (len(sentences))
