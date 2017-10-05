@@ -159,6 +159,7 @@ def log(s):
 
 # if __name__ == "__main__":
 
+#set global variables
 debug = False
 spark_context = None
 spark_session = None
@@ -167,26 +168,22 @@ log4j_logger = None
 logger = None
 log_enabled = False
 
-
+#initialize Spark and calculation engine
 initialize_spark()
 my_engine = CalcEngine()
 
 X_train,y_train = my_engine.preprocess('data/reddit-comments-2015-08.csv')
 vocabulary_size=8000
 
-
+#randomly set model parameters
 np.random.seed(10)
 model = RNNNumpy(vocabulary_size)
 o, s = model.forward_propagation(X_train[10])
 print(o.shape)
 print(o)
-
-
 predictions = model.predict(X_train[10])
 print(predictions.shape)
 print(predictions)
-
-
 # Limit to 1000 examples to save time
 print("Expected Loss for random predictions: %f" % np.log(vocabulary_size))
 print("Actual loss: %f" % model.calculate_loss(X_train[:1000], y_train[:1000]))
@@ -198,6 +195,7 @@ np.random.seed(10)
 model = RNNNumpy(grad_check_vocab_size, 10, bptt_truncate=1000)
 model.gradient_check([0,1,2,3], [1,2,3,4])
 
+# how long will it take to run one single step of sgd
 np.random.seed(10)
 model = RNNNumpy(vocabulary_size)
 start_time = time.time()
@@ -205,10 +203,11 @@ model.sgd_step(X_train[10], y_train[10], 0.005)
 end_time = time.time()
 print("it take {0} seconds to do one step sgd".format(end_time - start_time))
 
-np.random.seed(10)
 # Train on a small subset of the data to see what happens
+np.random.seed(10)
 model = RNNNumpy(vocabulary_size)
 losses = model.train_with_sgd(X_train[:100], y_train[:100])
 
+#parallely train a RNN model
 print("starting to train model in parallel...")
 optimal_parameter = my_engine.distributed_training(X_train[:100], y_train[:100],vocabulary_size)
