@@ -10,7 +10,7 @@ a couple of hours for training. Also you aim to find global optimal model parame
 
 ```bash
 # Clone the repo
-git clone https://github.com/dennybritz/rnn-tutorial-rnnlm
+git clone https://github.com/fionayumfe/rnn-distributed-training.git
 cd rnn-tutorial-rnnlm
 
 # Create a new virtual environment (optional, but recommended)
@@ -21,6 +21,40 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 ```
+### Setting up a Elastic Map-Reduce (EMR) cluster on AWS:
+```
+aws emr create-cluster --configurations your-json-file --release-label emr-5.3.1 --instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=m3.xlarge InstanceGroupType=CORE,InstanceCount=1,InstanceType=m3.xlarge --auto-terminate
+```
+You can also add spark-submit step to your emr script
+```
+$SPARK_HOME/bin/spark-submit \
+    --master   yarn
+    --conf     spark.yarn.submit.waitAppCompletion=false
+    --conf     spark.executorEnv.PYTHONHASHSEED=0
+    --conf     spark.yarn.executor.memoryOverhead=4096
+    --conf     spark.executor.memory=7.5g
+    --packages org.apache.hadoop:hadoop-aws:2.7.3
+/home/hadoop/spark_main.py
+```
+You may also create a shell script as bootstrap step. In the step, all your source files will be copied to your data node and your dependencies will be installed as well.
+An example bootstrap file is
+
+```bash
+#!/usr/bin/env bash
+
+aws s3 cp   s3://your_folder/spark_main.py             /home/hadoop/
+
+export PATH="$PATH:/home/hadoop"
+export CLASS_PATH="$CLASS_PATH:/home/hadoop"
+export PYTHONHASHSEED=0
+alias  python=python34
+
+sudo yum -y install your packages
+#install dependencies (Non-standard and non-Amazon Machine Image Python modules)
+sudo pip-3.4 install py4j boto3  psutil awscli pandas
+
+```
+
 
 ### Setting up a CUDA-enabled GPU instance on AWS EC2:
 
@@ -38,7 +72,7 @@ sudo apt-get install -y cuda
 sudo reboot
 
 # Clone the repo and install requirements
-git clone git@github.com:dennybritz/nn-theano.git
+git clone https://github.com/fionayumfe/rnn-distributed-training.git
 cd nn-theano
 sudo pip install -r requirements.txt
 
